@@ -1,0 +1,36 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.env
+
+# --- Environnements / outils ---
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+
+# --- Donnees : on ne versionne PAS les gros fichiers dans Git ---
+# (DVC s'en charge ; MinIO stocke le reste)
+data/raw/
+data/staging/
+data/curated/
+*.cif
+*.pdb
+*.parquet
+*.duckdb
+*.joblib
+
+# --- DVC ---
+# DVC versionne les donnees via des fichiers .dvc legers, eux SONT commit.
+# Le cache local DVC, lui, est ignore.
+/.dvc/cache
+/.dvc/tmp
+
+# --- OS ---
+.DS_Store
+Thumbs.db

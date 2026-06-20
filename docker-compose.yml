@@ -1,0 +1,92 @@
+# =============================================================================
+# OncoLake - orchestration des services locaux
+#
+#   docker compose up -d        demarre MinIO + l'API
+#   docker compose down         arrete tout (les donnees MinIO sont conservees)
+#   docker compose down -v      arrete ET efface les donnees (volume MinIO)
+#
+# Services :
+#   - minio        : stockage objet compatible S3 (zone raw du data lake)
+#   - minio-setup  : cree automatiquement les buckets au demarrage
+#   - api          : l'API Gateway FastAPI
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # MinIO : stockage objet compatible S3.
+  # Remplace LocalStack ; offre une vraie console web + persistance.
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: oncolake-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"   # API S3 (utilisee par boto3)
+      - "9001:9001"   # console web (a ouvrir dans le navigateur)
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio-data:/data   # <-- persistance : les donnees survivent aux redemarrages
+    healthcheck:
+      # l'API ne demarre qu'une fois MinIO reellement pret (pas juste "lance")
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - oncolake-net
+
+  # ---------------------------------------------------------------------------
+  # minio-setup : conteneur ephemere qui cree les buckets puis s'arrete.
+  # Evite d'avoir a creer les buckets a la main a chaque "compose up".
+  # ---------------------------------------------------------------------------
+  minio-setup:
+    image: minio/mc:latest
+    container_name: oncolake-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      mc mb --ignore-existing local/raw;
+      mc mb --ignore-existing local/staging;
+      mc mb --ignore-existing local/curated;
+      echo 'Buckets raw/staging/curated prets.';
+      exit 0;
+      "
+    networks:
+      - oncolake-net
+
+  # ---------------------------------------------------------------------------
+  # api : l'API Gateway FastAPI.
+  # ---------------------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: oncolake-api
+    ports:
+      - "8000:8000"
+    environment:
+      # l'API parle a MinIO via le reseau interne docker (nom de service "minio")
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - oncolake-net
+
+# -----------------------------------------------------------------------------
+# Volume nomme : c'est lui qui assure la persistance des donnees MinIO.
+# -----------------------------------------------------------------------------
+volumes:
+  minio-data:
+
+networks:
+  oncolake-net:
+    driver: bridge

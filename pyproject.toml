@@ -1,0 +1,88 @@
+[project]
+name = "oncolake"
+version = "0.1.0"
+description = "Data lake oncologie : classification oncogene/suppresseur a partir de structures AlphaFold (projet Data Lakes EFREI)"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT" }
+
+# ---------------------------------------------------------------------------
+# Dependances de base : le coeur qui tourne en prod / dans Docker.
+# Communes a l'infra ET au ML : necessaires pour le pipeline de bout en bout.
+# ---------------------------------------------------------------------------
+dependencies = [
+    # --- Acces aux sources de donnees ---
+    "requests>=2.32,<3.0",        # appels HTTP vers UniProt et AlphaFold
+    "httpx>=0.27,<0.29",          # client HTTP async (pour /ingest_fast)
+
+    # --- Zone raw : stockage objet compatible S3 (MinIO) ---
+    "boto3>=1.40,<2.0",           # SDK AWS S3 ; parle a MinIO comme a un vrai S3
+
+    # --- API Gateway + validation ---
+    "fastapi>=0.118,<0.140",      # framework de l'API Gateway
+    "uvicorn[standard]>=0.34,<0.50",  # serveur ASGI qui sert FastAPI
+    "pydantic>=2.7,<3.0",         # schemas typés = contrat de donnees + validation API
+    "pydantic-settings>=2.3,<3.0",  # config via variables d'environnement (.env)
+
+    # --- Parsing des structures et manipulation de donnees ---
+    "biopython>=1.84,<2.0",       # parse les fichiers .cif AlphaFold (Bio.PDB)
+    "numpy>=1.26,<2.3",           # calcul numerique ; plafonne <2.3 pour Numba
+    "pandas>=2.2,<3.0",           # tables de features (staging)
+
+    # --- Zone curated : base analytique legere ---
+    "duckdb>=1.1,<2.0",           # SQL analytique sur les features, lit le Parquet
+    "pyarrow>=16.0,<22.0",        # format Parquet (echange staging <-> curated)
+
+    # --- Orchestration / reproductibilite ---
+    "dvc>=3.60,<4.0",             # pipeline reproductible ingest -> features -> train
+]
+
+[project.optional-dependencies]
+
+# ---------------------------------------------------------------------------
+# Groupe ML : pour entrainer le Random Forest.   pip install -e ".[ml]"
+# ---------------------------------------------------------------------------
+ml = [
+    "scikit-learn>=1.5,<2.0",     # Random Forest + metriques + matrice de confusion
+    "matplotlib>=3.8,<4.0",       # courbes, matrice de confusion, importance features
+    "seaborn>=0.13,<0.14",        # visualisations statistiques (EDA)
+    "joblib>=1.4,<2.0",           # serialisation du modele entraine (.joblib)
+]
+
+# ---------------------------------------------------------------------------
+# Groupe perf : niveau avance (/ingest_fast).    pip install -e ".[perf]"
+# ---------------------------------------------------------------------------
+perf = [
+    "numba>=0.60,<0.66",          # JIT sur les calculs de coordonnees atomiques
+]
+
+# ---------------------------------------------------------------------------
+# Groupe dev : qualite et tests, jamais embarques en prod.  pip install -e ".[dev]"
+# ---------------------------------------------------------------------------
+dev = [
+    "pytest>=8.3,<10.0",          # tests unitaires (robustesse = note au bareme)
+    "ruff>=0.6,<1.0",             # linter + formateur rapide
+    "ipykernel>=6.29,<7.0",       # notebooks pour l'EDA
+]
+
+# ---------------------------------------------------------------------------
+# Tout installer d'un coup (dev local complet).   pip install -e ".[all]"
+# ---------------------------------------------------------------------------
+all = [
+    "oncolake[ml,perf,dev]",
+]
+
+# ---------------------------------------------------------------------------
+# Configuration des outils
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
