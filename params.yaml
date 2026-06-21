@@ -1,0 +1,16 @@
+# Parametres du pipeline, versionnes par DVC.
+ingest:
+  organism_id: 9606            # Homo sapiens
+  reviewed_only: true          # Swiss-Prot uniquement
+  keywords:
+    oncogene: KW-0656          # Proto-oncogene
+    tumor_suppressor: KW-0043  # Tumor suppressor
+  limit_per_class: null        # null = tout ; un entier pour tester vite
+
+features:
+  plddt_disorder_threshold: 70 # pLDDT < seuil => residu "faible confiance" (proxy desordre)
+
+train:
+  test_size: 0.25
+  random_state: 42
+  n_estimators: 300
