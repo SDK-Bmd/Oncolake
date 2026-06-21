@@ -1,26 +1,34 @@
-"""Ingestion UniProt -> zone raw. Porte depuis le notebook de faisabilite (valide)."""
+"""Ingestion UniProt : proteines humaines labellisees oncogene / suppresseur de tumeur.
+
+Porte du notebook de faisabilite, avec pagination complete via le header Link: next
+(UniProt renvoie 500 resultats par page ; il y en a ~1200 au total).
+"""
 import requests
 
-from ..schemas import Label
-
 UNIPROT_BASE = "https://rest.uniprot.org/uniprotkb"
+
 _session = requests.Session()
 _session.headers.update({"User-Agent": "OncoLake/0.1"})
 
 
-def search_by_keyword(keyword_id: str, label: Label, organism_id: int = 9606,
+def search_by_keyword(keyword_id: str, label: str, organism_id: int = 9606,
                       reviewed: bool = True, limit: int | None = None) -> list[dict]:
-    """Liste des proteines portant un mot-cle (KW-0656 / KW-0043), avec accession + sequence."""
+    """Retourne [{accession, gene, sequence, label}, ...] pour un mot-cle UniProt.
+
+    keyword_id : KW-0656 (Proto-oncogene) ou KW-0043 (Tumor suppressor).
+    limit      : nombre max de proteines (pratique pour tester ; None = tout).
+    """
     parts = [f"(keyword:{keyword_id})", f"(organism_id:{organism_id})"]
     if reviewed:
         parts.append("(reviewed:true)")
-    params = {
+    params: dict | None = {
         "query": " AND ".join(parts),
         "format": "json",
         "fields": "accession,gene_primary,sequence",
         "size": 500,
     }
-    rows, url = [], f"{UNIPROT_BASE}/search"
+    rows: list[dict] = []
+    url = f"{UNIPROT_BASE}/search"
     while url:
         r = _session.get(url, params=params, timeout=60)
         r.raise_for_status()
@@ -34,7 +42,6 @@ def search_by_keyword(keyword_id: str, label: Label, organism_id: int = 9606,
             })
             if limit and len(rows) >= limit:
                 return rows
-        # pagination via le header Link "next"
-        url = r.links.get("next", {}).get("url")
-        params = None
+        url = r.links.get("next", {}).get("url")  # pagination
+        params = None  # l'URL "next" porte deja les parametres
     return rows
