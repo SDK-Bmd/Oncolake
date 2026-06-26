@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     bucket_staging: str = "staging"
     bucket_curated: str = "curated"
 
+    duckdb_path: str = "data/curated.duckdb"
+    
     @property
     def buckets(self) -> list[str]:
         """Les trois zones, pratique pour iterer (creation, stats, checks)."""

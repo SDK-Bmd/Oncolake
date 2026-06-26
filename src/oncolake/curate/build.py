@@ -2,14 +2,14 @@
 
 DuckDB lit le Parquet directement depuis MinIO via httpfs (secret configure dans storage).
 """
-from ..config import settings
-from ..storage import get_duckdb
+from oncolake.config.settings import settings
+from oncolake.lake.warehouse import get_duckdb
 
 
 def build_curated() -> int:
     """Cree/rafraichit la table protein_features depuis le Parquet de staging. Retourne le nb de lignes."""
     con = get_duckdb()
-    staging_uri = f"s3://{settings.staging_bucket}/features.parquet"
+    staging_uri = f"s3://{settings.bucket_staging}/features.parquet"
     con.execute(f"""
         CREATE OR REPLACE TABLE protein_features AS
         SELECT * FROM read_parquet('{staging_uri}');
