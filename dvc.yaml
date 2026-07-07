@@ -1,44 +1,21 @@
-# Pipeline reproductible : ingest -> features -> curate -> train.
-# Chaque stage est un script mince dans pipelines/ qui appelle src/oncolake/.
 stages:
   ingest:
     cmd: python pipelines/stage_ingest.py
-    deps:
-      - pipelines/stage_ingest.py
-      - src/oncolake/ingest
-    params:
-      - ingest
-    outs:
-      - data/raw/manifest.json
+    deps: [pipelines/stage_ingest.py, src/oncolake/ingest]
+    params: [ingest]
+    outs: [data/raw/manifest.json]
 
   features:
     cmd: python pipelines/stage_features.py
     deps:
       - pipelines/stage_features.py
+      - src/oncolake/features/staging.py
       - src/oncolake/features/extract.py
       - data/raw/manifest.json
-    params:
-      - features
-    outs:
-      - data/staging/features.parquet
+    params: [features]
+    outs: [data/staging/features.parquet]
 
   curate:
     cmd: python pipelines/stage_curate.py
-    deps:
-      - pipelines/stage_curate.py
-      - src/oncolake/curate/build.py
-      - data/staging/features.parquet
-    outs:
-      - data/curated.duckdb
-
-  train:
-    cmd: python pipelines/stage_train.py
-    deps:
-      - pipelines/stage_train.py
-      - src/oncolake/ml/train.py
-      - data/curated.duckdb
-    params:
-      - train
-    metrics:
-      - metrics.json:
-          cache: false
+    deps: [pipelines/stage_curate.py, src/oncolake/curate/build.py, data/staging/features.parquet]
+    outs: [data/curated.duckdb]

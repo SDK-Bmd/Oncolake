@@ -6,10 +6,10 @@ ingest:
     oncogene: KW-0656          # Proto-oncogene
     tumor_suppressor: KW-0043  # Tumor suppressor
   limit_per_class: null        # null = tout ; un entier pour tester vite
-
+  
 features:
-  plddt_disorder_threshold: 70 # pLDDT < seuil => residu "faible confiance" (proxy desordre)
-
+  plddt_disorder_threshold: 70
+  dual_label: drop  
 train:
   test_size: 0.25
   random_state: 42

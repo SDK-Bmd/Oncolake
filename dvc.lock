@@ -1,0 +1,77 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python pipelines/stage_ingest.py
+    deps:
+    - path: pipelines/stage_ingest.py
+      hash: md5
+      md5: 82e112837c972992d8821805f7c11fa3
+      size: 473
+    - path: src/oncolake/ingest
+      hash: md5
+      md5: a07b3b2bef5d6c87022884f99108ba10.dir
+      size: 25798
+      nfiles: 16
+    params:
+      params.yaml:
+        ingest:
+          organism_id: 9606
+          reviewed_only: true
+          keywords:
+            oncogene: KW-0656
+            tumor_suppressor: KW-0043
+          limit_per_class:
+    outs:
+    - path: data/raw/manifest.json
+      hash: md5
+      md5: 01e78a18231a286ef5cb49651df98348
+      size: 358757
+  features:
+    cmd: python pipelines/stage_features.py
+    deps:
+    - path: data/raw/manifest.json
+      hash: md5
+      md5: 01e78a18231a286ef5cb49651df98348
+      size: 358757
+    - path: pipelines/stage_features.py
+      hash: md5
+      md5: 6fccfbf97d2b3d7d9df12d0490117615
+      size: 583
+    - path: src/oncolake/features/extract.py
+      hash: md5
+      md5: 12610dd4754a2aeb7faaef82b0b709d9
+      size: 2346
+    - path: src/oncolake/features/staging.py
+      hash: md5
+      md5: 4fd4ec2f1d1eb09449f9d9fd7ea2232b
+      size: 3390
+    params:
+      params.yaml:
+        features:
+          plddt_disorder_threshold: 70
+          dual_label: drop
+    outs:
+    - path: data/staging/features.parquet
+      hash: md5
+      md5: cc86c1f99e5a63c9db690bf905797896
+      size: 80156
+  curate:
+    cmd: python pipelines/stage_curate.py
+    deps:
+    - path: data/staging/features.parquet
+      hash: md5
+      md5: cc86c1f99e5a63c9db690bf905797896
+      size: 80156
+    - path: pipelines/stage_curate.py
+      hash: md5
+      md5: 84a6f65872e82234eb362fd634bd82ab
+      size: 216
+    - path: src/oncolake/curate/build.py
+      hash: md5
+      md5: 7cdad52eac5650df41003652aa9719ca
+      size: 747
+    outs:
+    - path: data/curated.duckdb
+      hash: md5
+      md5: 611f3d1506bbd4248889cadc8199a4f2
+      size: 536576
