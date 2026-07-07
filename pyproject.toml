@@ -3,7 +3,7 @@ name = "oncolake"
 version = "0.1.0"
 description = "Data lake oncologie : classification oncogene/suppresseur a partir de structures AlphaFold (projet Data Lakes EFREI)"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.12,<3.13"
 license = { text = "MIT" }
 
 # ---------------------------------------------------------------------------
@@ -25,9 +25,9 @@ dependencies = [
     "pydantic-settings>=2.3,<3.0",  # config via variables d'environnement (.env)
 
     # --- Parsing des structures et manipulation de donnees ---
-    "biopython>=1.84,<2.0",       # parse les fichiers .cif AlphaFold (Bio.PDB)
+    "gemmi>=0.6,<1.0",            # parse les .cif AlphaFold (lecture mmCIF, pLDDT via B-factor)
     "numpy>=1.26,<2.3",           # calcul numerique ; plafonne <2.3 pour Numba
-    "pandas>=2.2,<3.0",           # tables de features (staging)
+    "polars>=1.0,<2.0",           # tables de features (staging) ; writer Parquet natif
 
     # --- Zone curated : base analytique legere ---
     "duckdb>=1.1,<2.0",           # SQL analytique sur les features, lit le Parquet
@@ -75,9 +75,13 @@ all = [
 # ---------------------------------------------------------------------------
 # Configuration des outils
 # ---------------------------------------------------------------------------
+# Layout src/ : sans ceci, `pip install -e .` ne trouve pas le package oncolake.
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
