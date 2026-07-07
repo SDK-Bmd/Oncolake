@@ -87,7 +87,7 @@ consomme les structures déjà calculées de l'AlphaFold Protein Structure Datab
 | Zone | Techno | Contenu |
 |---|---|---|
 | **raw** | MinIO (objet, compatible S3) | JSON UniProt brut, fichiers `.cif` AlphaFold non transformés, `manifest.json` |
-| **staging** | Parquet (sur MinIO), traité en pandas | features extraites : pLDDT moyen, % de résidus faible confiance (proxy désordre), longueur de séquence, composition en acides aminés, rayon de giration (compacité) |
+| **staging** | Parquet (sur MinIO), traité en Polars | features extraites : pLDDT moyen, % de résidus faible confiance (proxy désordre), longueur de séquence, composition en acides aminés, rayon de giration (compacité) |
 | **curated** | DuckDB | vecteurs de features nettoyés + label oncogène/suppresseur, prêts pour le ML |
 
 Le **manifeste** (`raw/manifest.json`) joue le rôle de table d'index entre les zones :
@@ -101,7 +101,7 @@ il liste chaque protéine avec son label, sa séquence, et un drapeau `has_struc
 |---|---|---|
 | Stockage zone raw | **MinIO** | object store S3-compatible, vraie console + persistance (remplace LocalStack) |
 | Parsing structures | **gemmi** | lecture mmCIF rapide ; pLDDT lu directement dans le champ B-factor |
-| Manipulation données | **pandas** | tables de features de la zone staging |
+| Manipulation données | **Polars** | tables de features de la zone staging (rapide, lazy ; writer Parquet natif) |
 | Base curated | **DuckDB** | SQL analytique en process, lit le Parquet directement depuis MinIO (`httpfs`) |
 | Orchestration | **DVC** | pipeline reproductible et versionné (`ingest → features → curate → train`) |
 | Contrats de schéma | **Pydantic** | validation des données aux frontières de zones + I/O de l'API |
@@ -182,10 +182,13 @@ uvicorn oncolake.api.main:app --reload     # http://localhost:8000/docs
 - Les 4 sans structure — **KMT2A, APC, ATM, BRCA2** — sont des protéines *géantes*
   (toutes > 2700 résidus), au-delà de la couverture en modèle pleine chaîne
   d'AlphaFold DB. Absence légitime, et non un échec de l'ingestion.
-- **~5 protéines portent les deux labels** (rôle double oncogène *et* suppresseur).
+- **5 protéines portent les deux labels** (rôle double oncogène *et* suppresseur).
   Elles apparaissent dans les deux requêtes → deux entrées de manifeste mais un seul
-  `.cif`. Ce conflit d'étiquette sera arbitré en zone curated (écarter / prioriser /
-  classe « both ») avant l'entraînement.
+  `.cif`. Le staging les traite via `resolve_dual_labels` : la politique par défaut
+  `drop` les écarte (labels contradictoires pour une tâche binaire), configurable en
+  `oncogene` / `suppressor` / `both`.
+- Après filtrage (4 sans structure + 5 double-label écartées), la zone staging
+  contient **404 protéines** — le jeu de données du modèle.
 
 > Ce dernier point illustre l'honnêteté scientifique attendue : la vérité terrain
 > n'est pas toujours binaire, et le pipeline le rend explicite plutôt que de le
@@ -241,7 +244,7 @@ Chronométrages sur batch de 1 et de 100 à documenter ici. *(À venir — étap
 - [x] **Étape 1** — preuve de faisabilité (pont UniProt → AlphaFold validé)
 - [x] **Étape 2** — squelette du dépôt (3 zones, stack, Docker)
 - [x] **Étape 3** — ingestion → zone raw (`scripts/ingest.py`)
-- [ ] **Étape 4** — extraction de features → zone staging
+- [x] **Étape 4** — extraction de features → zone staging (`scripts/build_features.py`)
 - [ ] **Étape 5** — zone curated (DuckDB) + Random Forest + matrice de confusion
 - [ ] **Étape 6** — endpoints FastAPI complets + `/ingest` naïf
 - [ ] **Étape 7** — `/ingest_fast` optimisé (+30 %) + benchmarks
