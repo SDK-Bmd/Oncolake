@@ -1,9 +1,11 @@
 """Extraction de features (zone staging). gemmi pour parser le .cif, Polars pour la table."""
 import gemmi
+import os
+import tempfile
 import numpy as np
 import polars as pl
 
-from ..schemas import AA20
+from oncolake.schemas import AA20
 
 
 def amino_acid_composition(sequence: str) -> dict[str, float]:
@@ -12,26 +14,33 @@ def amino_acid_composition(sequence: str) -> dict[str, float]:
 
 
 def structure_features(cif_bytes: bytes, disorder_threshold: int = 70) -> dict:
-    """pLDDT (B-factor des CA) + rayon de giration depuis le contenu .cif."""
-    structure = gemmi.read_structure_from_string(
-        cif_bytes.decode("utf-8"), format=gemmi.CoorFormat.Mmcif
-    )
+    """pLDDT (B-factor des CA) + rayon de giration depuis le contenu d'un .cif."""
+    with tempfile.NamedTemporaryFile(suffix=".cif", delete=False) as tmp:
+        tmp.write(cif_bytes)
+        path = tmp.name
+    try:
+        structure = gemmi.read_structure(path)        # PAS read_structure_from_string
+    finally:
+        os.unlink(path)
+
     model = structure[0]
     plddt, coords = [], []
     for chain in model:
-        for res in chain:
-            ca = res.find_atom("CA", "*")
+        for residue in chain:
+            ca = residue.find_atom("CA", "*")
             if ca is not None:
                 plddt.append(ca.b_iso)
                 coords.append([ca.pos.x, ca.pos.y, ca.pos.z])
-    plddt = np.asarray(plddt)
-    coords = np.asarray(coords)
-    center = coords.mean(axis=0)
-    rg = float(np.sqrt(((coords - center) ** 2).sum(axis=1).mean()))
+
+    plddt_arr = np.asarray(plddt)
+    coords_arr = np.asarray(coords)
+    center = coords_arr.mean(axis=0)
+    rg = float(np.sqrt(((coords_arr - center) ** 2).sum(axis=1).mean()))
+
     return {
-        "n_residues_structure": int(len(plddt)),
-        "plddt_mean": float(plddt.mean()),
-        "pct_low_confidence": float((plddt < disorder_threshold).mean() * 100),
+        "n_residues_structure": int(len(plddt_arr)),
+        "plddt_mean": float(plddt_arr.mean()),
+        "pct_low_confidence": float((plddt_arr < disorder_threshold).mean() * 100),
         "radius_of_gyration": rg,
     }
 
@@ -43,3 +52,16 @@ def _read(cif_bytes: bytes) -> gemmi.Structure:
 def build_feature_frame(records: list[dict]) -> pl.DataFrame:
     """Assemble une liste de dicts de features en DataFrame Polars (ecrit ensuite en Parquet)."""
     return pl.DataFrame(records)
+
+def features_for_record(record: dict, cif_bytes: bytes,
+                        disorder_threshold: int = 70) -> dict:
+    """Assemble une ligne APLATIE : structure + composition + metadonnees."""
+    row = structure_features(cif_bytes, disorder_threshold)
+    row.update(amino_acid_composition(record["sequence"]))
+    row.update({
+        "accession": record["accession"],
+        "gene": record["gene"],
+        "label": record["label"],
+        "seq_length": len(record["sequence"]),
+    })
+    return row

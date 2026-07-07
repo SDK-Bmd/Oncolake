@@ -1,7 +1,4 @@
-"""Stage 1 du pipeline : ingestion -> zone raw (MinIO).
-
-Usage (MinIO doit tourner : docker compose up -d minio minio-setup) :
-
+"""
     python scripts/ingest.py                # tout (~1200 proteines)
     python scripts/ingest.py --limit 20     # 20 par classe, pour un test rapide
 
