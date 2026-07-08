@@ -1,5 +1,5 @@
 """Contrats Pydantic a chaque frontiere de zone. Source unique de verite du schema."""
-from typing import Literal
+from typing import Literal 
 
 from pydantic import BaseModel, Field
 
