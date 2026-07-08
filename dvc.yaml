@@ -19,3 +19,16 @@ stages:
     cmd: python pipelines/stage_curate.py
     deps: [pipelines/stage_curate.py, src/oncolake/curate/build.py, data/staging/features.parquet]
     outs: [data/curated.duckdb]
+  
+  train:
+    cmd: python pipelines/stage_train.py
+    deps:
+      - pipelines/stage_train.py
+      - src/oncolake/ml/train.py
+      - data/curated.duckdb
+    params: [train]
+    outs:
+      - data/model.joblib
+    metrics:
+      - metrics.json:
+          cache: false

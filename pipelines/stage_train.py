@@ -1,4 +1,11 @@
 """Stage DVC : train. DuckDB -> Random Forest -> metrics.json."""
-# TODO etape 5 : appeler ml.train.train()
+from pathlib import Path
+import yaml
+from oncolake.ml.train import train
+
+def main():
+    params = yaml.safe_load(Path("params.yaml").read_text())["train"]
+    train(**params) 
+
 if __name__ == "__main__":
-    raise SystemExit("stage_train : a implementer (etape 5)")
+    main()
