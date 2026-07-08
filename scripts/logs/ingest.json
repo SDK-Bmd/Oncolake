@@ -1,0 +1,7 @@
+{
+  "variant": "ingest",
+  "elapsed_seconds": 53.814,
+  "timestamp": "2026-07-08T20:34:06+00:00",
+  "n_proteins": 418,
+  "n_with_structure": 414
+}
