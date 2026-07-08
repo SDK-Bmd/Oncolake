@@ -9,9 +9,9 @@ stages:
       size: 473
     - path: src/oncolake/ingest
       hash: md5
-      md5: a07b3b2bef5d6c87022884f99108ba10.dir
-      size: 25798
-      nfiles: 16
+      md5: 5bd9a3890dfa55c56e8f2b7beaf0a4f2.dir
+      size: 12627
+      nfiles: 9
     params:
       params.yaml:
         ingest:
@@ -75,3 +75,33 @@ stages:
       hash: md5
       md5: 611f3d1506bbd4248889cadc8199a4f2
       size: 536576
+  train:
+    cmd: python pipelines/stage_train.py
+    deps:
+    - path: data/curated.duckdb
+      hash: md5
+      md5: 611f3d1506bbd4248889cadc8199a4f2
+      size: 536576
+    - path: pipelines/stage_train.py
+      hash: md5
+      md5: 99a174f4183454496290e5b3e9aa2f3a
+      size: 281
+    - path: src/oncolake/ml/train.py
+      hash: md5
+      md5: 3c2951c482ff1f0fd359a606ec7b2a8f
+      size: 2403
+    params:
+      params.yaml:
+        train:
+          test_size: 0.25
+          random_state: 42
+          n_estimators: 300
+    outs:
+    - path: data/model.joblib
+      hash: md5
+      md5: c1e42819827ec0290239eb0998f06709
+      size: 2520553
+    - path: metrics.json
+      hash: md5
+      md5: 51f234406fe2c9107bc5689563c9b18a
+      size: 124
