@@ -5,6 +5,7 @@ import time
 from oncolake.ingest import alphafold
 from oncolake.features.extract import features_for_record
 from oncolake.schemas import IngestRequest
+from oncolake.ingest.fast import ingest_fast
 
 app = FastAPI(title="OncoLake API")
 
@@ -52,4 +53,11 @@ def ingest(req: IngestRequest):
         features.append(features_for_record(record, cif))
     elapsed = time.perf_counter() - start
     # TODO 4b : renvoyer un dict avec n_processed, elapsed_seconds (arrondi à 3), features
+    return {"n_processed": len(features), "elapsed_seconds": round(elapsed, 3), "features": features}
+
+@app.post("/ingest_fast")
+def ingest_fast(req: IngestRequest):
+    start = time.perf_counter()
+    features = ingest_fast(req.items)
+    elapsed = time.perf_counter() - start
     return {"n_processed": len(features), "elapsed_seconds": round(elapsed, 3), "features": features}
