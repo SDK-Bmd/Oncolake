@@ -40,14 +40,13 @@ def resolve_dual_labels(records: list[dict], policy: str) -> list[dict]:
     if target is None:
         raise ValueError(f"politique double-label inconnue : {policy}")
 
-    # collapse : une seule entree par accession en double, label force
     seen: set[str] = set()
     out: list[dict] = []
     for r in records:
         acc = r["accession"]
         if acc in dual:
             if acc in seen:
-                continue          # 2e occurrence -> ignoree
+                continue          
             seen.add(acc)
             r = {**r, "label": target}
         out.append(r)
@@ -57,31 +56,23 @@ def resolve_dual_labels(records: list[dict], policy: str) -> list[dict]:
 
 def build_features(dual_label_policy: str = "drop",
                    disorder_threshold: int = 70) -> pl.DataFrame:
-    # 1. Lire le manifeste depuis la zone raw
+
     manifest = json.loads(storage.get_bytes(settings.bucket_raw, MANIFEST_KEY))
     print(f"[manifest] {len(manifest)} entrees")
 
-    # 2. Resoudre les proteines double-label (unicite de l'accession)
     records = resolve_dual_labels(manifest, dual_label_policy)
-
-    # 3. Ecarter proprement les proteines sans structure (les geantes)
     kept = [r for r in records if r.get("has_structure")]
     dropped = [r for r in records if not r.get("has_structure")]
     for r in dropped:
         print(f"[skip] pas de structure : {r['accession']} ({r['gene']})")
     print(f"[filter] {len(kept)} gardees, {len(dropped)} sans structure")
 
-    # 4. Extraction des features (boucle naive ; l'optimisation viendra a l'etape 7)
     rows: list[dict] = []
     for r in kept:
         cif = storage.get_bytes(settings.bucket_raw, r["cif_key"])
         rows.append(features_for_record(r, cif, disorder_threshold))
 
-    # 5. Assembler la table (Polars : list[dict] -> DataFrame, colonnes inferees des cles)
     df = pl.DataFrame(rows)
-
-    # 6. Ecrire en Parquet -> zone staging.
-    #    write_parquet ecrit dans un BytesIO (writer natif Polars, pas besoin de pyarrow).
     buf = io.BytesIO()
     df.write_parquet(buf)
     storage.put_bytes(settings.bucket_staging, STAGING_KEY, buf.getvalue())

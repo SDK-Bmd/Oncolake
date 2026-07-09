@@ -26,7 +26,6 @@ class Settings(BaseSettings):
     s3_access_key: str = "minioadmin"
     s3_secret_key: str = "minioadmin"
 
-    # --- Buckets (les 3 zones du data lake) ---
     bucket_raw: str = "raw"
     bucket_staging: str = "staging"
     bucket_curated: str = "curated"

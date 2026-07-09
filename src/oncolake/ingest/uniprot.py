@@ -43,5 +43,5 @@ def search_by_keyword(keyword_id: str, label: str, organism_id: int = 9606,
             if limit and len(rows) >= limit:
                 return rows
         url = r.links.get("next", {}).get("url")  # pagination
-        params = None  # l'URL "next" porte deja les parametres
+        params = None  
     return rows

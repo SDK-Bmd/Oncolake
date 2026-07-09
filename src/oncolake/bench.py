@@ -63,23 +63,24 @@ def main() -> int:
         f"_Genere le {datetime.now(timezone.utc).isoformat(timespec='seconds')}"
         f" | moyenne sur {REPEATS} appels_",
         "",
-        "| Batch | /ingest (s) | /ingest_fast (s) | Gain |",
-        "|---|---|---|---|",
-    ]
-    for size, tn, tf, g in rows:
-        lines.append(f"| {size} | {tn:.3f} | {tf:.3f} | {g:.1f} % |")
-    b100 = next((g for s, _, _, g in rows if s == 100), 0.0)
-    lines += [
+        "| Variante | Temps (s) | Proteines | Structures | Debit (prot/s) | Workers |",
+        "|---|---|---|---|---|---|",
+        f"| `ingest` (naif, sequentiel) | {t0:.2f} | {baseline.get('n_proteins', '?')} "
+        f"| {baseline.get('n_with_structure', '?')} | {_throughput(baseline):.1f} | 1 |",
+        f"| `ingest_fast` (ThreadPool) | {t1:.2f} | {fast.get('n_proteins', '?')} "
+        f"| {fast.get('n_with_structure', '?')} | {_throughput(fast):.1f} | {fast.get('max_workers', '?')} |",
         "",
-        f"- Objectif +30 % (a batch 100) : **{'ATTEINT' if b100 >= 30 else 'NON ATTEINT'}**",
-        "- A batch 1, le gain est negligeable : un seul element, aucun parallelisme a "
-        "exploiter. L'optimisation se revele sur les gros batchs.",
+        f"- **Acceleration : x{speedup:.2f}**",
+        f"- **Gain de performance : {gain:.1f} %**",
     ]
-    report = LOG_DIR / "endpoint_benchmark.md"
-    report.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"\n[bench] rapport -> {report}")
-    return 0
+    if baseline.get("n_proteins") != fast.get("n_proteins"):
+        lines += ["", "> ATTENTION : les deux runs n'ont pas le meme nombre de proteines. "
+                  "Relance avec le MEME `--limit` pour une comparaison equitable."]
+    elif baseline.get("n_with_structure") != fast.get("n_with_structure"):
+        lines += ["", "> ATTENTION : le nombre de structures differe -> la version parallele a "
+                  "probablement ete limitee par l'API (429). Baisse `--workers`."]
 
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+    LOG_DIR.mkdir(exist_ok=True)
+    path = LOG_DIR / "comparison.md"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path

@@ -23,8 +23,6 @@ def train(test_size=0.25, random_state=42, n_estimators=300):
   X, y = make_xy(df)
   X_train, X_test, y_train, y_test = split_data(X, y, test_size, random_state)
   clf = train_model(X_train, y_train, n_estimators, random_state)
-
-  # --- métriques ---
   test_acc = clf.score(X_test, y_test)
   cv_acc = cross_val_score(clf, X, y, cv=5).mean()
   baseline = cross_val_score(DummyClassifier(strategy="most_frequent"), X, y, cv=5).mean()
@@ -48,7 +46,7 @@ def feature_names(df):
 
 def train_model(X_train, y_train, n_estimators=300, random_state=42):
     clf = RandomForestClassifier(n_estimators = n_estimators,  random_state=random_state)  
-    clf.fit(X_train, y_train)                                                       # TODO 4b : entraîner sur X_train, y_train
+    clf.fit(X_train, y_train)                                                       
     return clf
 
 def split_data(X, y, test_size=0.25, random_state=42):

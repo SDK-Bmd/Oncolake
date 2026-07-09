@@ -2,8 +2,7 @@
 import gemmi
 import os
 import tempfile
-import numpy as np
-import polars as pl
+
 
 from oncolake.schemas import AA20
 
@@ -19,7 +18,7 @@ def structure_features(cif_bytes: bytes, disorder_threshold: int = 70) -> dict:
         tmp.write(cif_bytes)
         path = tmp.name
     try:
-        structure = gemmi.read_structure(path)        # PAS read_structure_from_string
+        structure = gemmi.read_structure(path)  
     finally:
         os.unlink(path)
 
@@ -43,10 +42,6 @@ def structure_features(cif_bytes: bytes, disorder_threshold: int = 70) -> dict:
         "pct_low_confidence": float((plddt_arr < disorder_threshold).mean() * 100),
         "radius_of_gyration": rg,
     }
-
-
-def _read(cif_bytes: bytes) -> gemmi.Structure:
-    return gemmi.read_structure_from_string(cif_bytes.decode("utf-8"), format=gemmi.CoorFormat.Mmcif)
 
 
 def build_feature_frame(records: list[dict]) -> pl.DataFrame:

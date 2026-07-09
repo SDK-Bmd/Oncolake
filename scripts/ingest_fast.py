@@ -1,16 +1,13 @@
 """/ingest_fast : ingestion optimisee par telechargements AFDB paralleles (ThreadPool).
 
-Meme sortie que scripts/ingest.py (memes objets raw, meme manifeste), mais les .cif
-sont telecharges en parallele -- l'ingestion est I/O-bound, donc c'est le levier le
-plus rentable (comme au TP2). Chronometre, journalise dans logs/ingest_fast.json, et
+Les .cif sont telecharges en parallele, l'ingestion est I/O-bound. 
+Chronometre, journalise dans logs/ingest_fast.json, et
 si logs/ingest.json existe, genere logs/comparison.md.
 
     python scripts/ingest.py                          # 1) la baseline naive (-> logs/ingest.json)
     python scripts/ingest_fast.py                     # 2) la version rapide + le comparatif
-    python scripts/ingest_fast.py --limit 50 --workers 8   # meme --limit que ingest pour etre equitable
+    python scripts/ingest_fast.py --limit 50 --workers 8 
 
-Numba n'a pas sa place ici (aucun calcul CPU dans l'ingestion) : il sert a
-l'extraction de features. Ici tout le gain vient du parallelisme I/O.
 """
 import argparse
 import json
@@ -63,7 +60,7 @@ def run_fast(limit: int | None = None, max_workers: int = 16) -> list[dict]:
             json.dumps(records, ensure_ascii=False).encode("utf-8"),
         )
 
-        # Telechargements AlphaFold en parallele (le coeur de l'optimisation).
+        # Telechargements AlphaFold en parallele 
         with ThreadPoolExecutor(max_workers=max_workers) as pool:
             results = list(pool.map(_fetch_and_store, records))
 

@@ -1,7 +1,7 @@
 # Parametres du pipeline, versionnes par DVC.
 ingest:
   organism_id: 9606            # Homo sapiens
-  reviewed_only: true          # Swiss-Prot uniquement
+  reviewed_only: true          
   keywords:
     oncogene: KW-0656          # Proto-oncogene
     tumor_suppressor: KW-0043  # Tumor suppressor

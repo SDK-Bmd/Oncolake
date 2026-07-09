@@ -1,28 +1,27 @@
-"""Version optimisee : telecharge + extrait les features d'un batch EN PARALLELE.
+"""Version optimisée de /ingest : téléchargements + extraction en parallèle (ThreadPool).
 
-Meme sortie que la boucle naive de /ingest, mais les telechargements AlphaFold
-(I/O-bound) sont parallelises via ThreadPool -> >= 30 % plus rapide sur un batch.
-C'est le levier le plus rentable ici (comme au TP2) ; Numba viserait les calculs
-CPU de l'extraction, secondaires face au temps reseau.
+Même sortie que le ingest naïf, mais les .cif sont récupérés en parallèle. L'étape
+est I/O-bound, donc le parallélisme est le levier le plus rentable.
 """
 from concurrent.futures import ThreadPoolExecutor
 
-from oncolake.features.extract import features_for_record
 from oncolake.ingest import alphafold
+from oncolake.features.extract import features_for_record
 
 
-def _process_one(item) -> dict | None:
-    """Telecharge le .cif et extrait les features d'un element. None si pas de structure."""
-    cif = alphafold.fetch_cif(item.accession)
+def _process_item(item: dict, disorder_threshold: int = 70) -> dict | None:
+    """Télécharge la structure d'un item et en extrait les features (None si absente).
+    Exécuté dans un thread ; ThreadPoolExecutor.map préserve l'ordre."""
+    cif = alphafold.fetch_cif(item["accession"])
     if cif is None:
         return None
-    record = {"accession": item.accession, "sequence": item.sequence,
+    record = {"accession": item["accession"], "sequence": item["sequence"],
               "gene": None, "label": None}
-    return features_for_record(record, cif)
+    return features_for_record(record, cif, disorder_threshold)
 
 
-def ingest_fast(items, max_workers: int = 16) -> list[dict]:
-    """Traite un batch en parallele. items : liste d'objets .accession / .sequence."""
+def ingest_fast(items: list[dict], max_workers: int = 16) -> list[dict]:
+    """Traite un batch d'items {accession, sequence} en parallèle et renvoie les features."""
     with ThreadPoolExecutor(max_workers=max_workers) as pool:
-        results = pool.map(_process_one, items)   # map preserve l'ordre du batch
-    return [r for r in results if r is not None]
+        results = pool.map(_process_item, items)
+    return [r for r in results if r is not None] 

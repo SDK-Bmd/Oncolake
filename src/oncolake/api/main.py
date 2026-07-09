@@ -16,10 +16,8 @@ def health():
 
 @app.get("/stats")
 def stats():
-    # TODO : renvoyer {bucket: nombre d'objets} pour les 3 zones
-    #   indice boucle : { b: storage.count_objects(b) for b in settings.buckets }
     buckets = {}
-    for b in settings.buckets:              # b = "raw", puis "staging", puis "curated"
+    for b in settings.buckets:             
         buckets[b] = storage.count_objects(b)
     return buckets
 
@@ -56,7 +54,7 @@ def ingest(req: IngestRequest):
     return {"n_processed": len(features), "elapsed_seconds": round(elapsed, 3), "features": features}
 
 @app.post("/ingest_fast")
-def ingest_fast(req: IngestRequest):
+def ingest_fast_endpoint(req: IngestRequest):
     start = time.perf_counter()
     features = ingest_fast(req.items)
     elapsed = time.perf_counter() - start

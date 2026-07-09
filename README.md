@@ -2,8 +2,8 @@
 
 OncoLake ingère des données biomédicales depuis deux sources publiques, les fait
 transiter par trois zones (*raw → staging → curated*), et entraîne un modèle Random Forest 
-pour répondre à une question de biologie structurale 
-orchestré par un pipeline reproductible (DVC) et exposé via une API (FastAPI).
+pour répondre à une question de biologie structurale  
+orchestrée par un pipeline reproductible (DVC) et exposé via une API (FastAPI).
 
 ---
 
@@ -53,7 +53,7 @@ changements de version de la base.
 **Prérequis :** Python 3.12, [uv](https://docs.astral.sh/uv/), Docker.
 
 ```bash
-git clone <git@github.com:SDK-Bmd/Oncolake.gitt> Oncolake && cd Oncolake
+git clone git@github.com:SDK-Bmd/Oncolake.git Oncolake && cd Oncolake
 
 uv venv --python 3.12
 source .venv/bin/activate          # Windows : .venv\Scripts\Activate.ps1
@@ -126,7 +126,7 @@ un artefact local suivi par DVC :
 | `curate` | Parquet staging | `data/curated.duckdb` |
 | `train` | table curated | `metrics.json` + `data/model.joblib` |
 
-les artefacts locaux servent à DVC pour
+Les artefacts locaux servent à DVC pour
 détecter les changements et garantir la reproductibilité.
 
 ---
@@ -172,7 +172,7 @@ suppresseurs.
 **Interprétation biologique.** 
  Oncogènes et suppresseurs sont tous deux des protéines du cancer, aux propriétés
 structurales globales proches. Leur différence se joue probablement à une
-mutations ponctuelles, partenaires d'interaction qui est **invisible pour la silhouette 3D**.
+mutation ponctuelle, partenaires d'interaction qui sont **invisibles pour la silhouette 3D**.
 Le pipeline rend ce constat explicite.
 
 ---
@@ -184,16 +184,27 @@ vite** que la version naïve. Leviers : ThreadPoolExecutor / async (httpx) pour
 paralléliser les téléchargements AFDB (I/O-bound), Numba sur les calculs de
 coordonnées (CPU-bound), vectorisation NumPy pour la composition en acides aminés.
 
+
 ### Benchmarks
 
-> _[À COMPLÉTER — étape 7]_ Chronométrages sur un **batch de 1** et un **batch de 100**,
-> pour `/ingest` et `/ingest_fast`, avec le gain en %.
+Deux mesures complémentaires.
+
+**1. Endpoints API `/ingest` vs `/ingest_fast`** : Reproductible via `scripts/bench_api.py` (API lancée) :
 
 | Batch | `/ingest` (s) | `/ingest_fast` (s) | Gain |
 |---|---|---|---|
-| 1 élément | _à remplir_ | _à remplir_ | _à remplir_ |
-| 100 éléments | _à remplir_ | _à remplir_ | _à remplir_ |
+| 1 élément | 0,26 | 0,10 | 63 % |
+| 100 éléments | 11,01 | 1,22 | **89 %** |
 
-_Décrire ici les optimisations retenues et leur effet mesuré._
+**2. Ingestion complète en zone raw** : `scripts/ingest.py` vs
+`scripts/ingest_fast.py`, résultats dans `logs/comparison.md` :
 
----
+| Variante | Temps (s) | Protéines | Débit (prot/s) | Workers |
+|---|---|---|---|---|
+| `ingest` (naïf, séquentiel) | 53,8 | 418 | 7,8 | 1 |
+| `ingest_fast` (ThreadPool) | 11,6 | 418 | 36,2 | 16 |
+
+→ accélération **×4,7**, gain **78,5 %**.
+
+Dans les deux cas, le gain vient de la **parallélisation des téléchargements AlphaFold**
+(étape I/O-bound). 

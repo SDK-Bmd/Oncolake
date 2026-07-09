@@ -21,21 +21,17 @@ from oncolake.lake import storage
 
 def main() -> int:
     print(f"Endpoint MinIO : {settings.s3_endpoint_url}")
-
-    # 1. Connexion
     if not storage.ping():
         print("ECHEC : MinIO ne repond pas. Le conteneur tourne-t-il ?")
         print("  -> docker compose up -d minio minio-setup")
         return 1
     print("OK   : MinIO repond.")
-
-    # 2. Buckets
     storage.ensure_buckets()
     for bucket in settings.buckets:
         present = storage.bucket_exists(bucket)
         print(f"{'OK  ' if present else 'MANQUE'} : bucket '{bucket}'")
 
-    # 3. Aller-retour sur un objet test dans la zone raw
+  
     test_key = "_healthcheck/test.txt"
     test_data = b"oncolake connection ok"
     try:
@@ -47,7 +43,6 @@ def main() -> int:
         print(f"ECHEC : aller-retour objet -> {exc}")
         return 1
     finally:
-        # Nettoyage : on ne laisse pas de trace
         try:
             storage.get_s3_client().delete_object(
                 Bucket=settings.bucket_raw, Key=test_key

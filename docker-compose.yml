@@ -2,8 +2,6 @@
 # OncoLake - orchestration des services locaux
 #
 #   docker compose up -d        demarre MinIO + l'API
-#   docker compose down         arrete tout (les donnees MinIO sont conservees)
-#   docker compose down -v      arrete ET efface les donnees (volume MinIO)
 #
 # Services :
 #   - minio        : stockage objet compatible S3 (zone raw du data lake)
@@ -12,23 +10,18 @@
 # =============================================================================
 
 services:
-
-  # ---------------------------------------------------------------------------
-  # MinIO : stockage objet compatible S3.
-  # Remplace LocalStack ; offre une vraie console web + persistance.
-  # ---------------------------------------------------------------------------
   minio:
     image: minio/minio:latest
     container_name: oncolake-minio
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"   # API S3 (utilisee par boto3)
-      - "9001:9001"   # console web (a ouvrir dans le navigateur)
+      - "9000:9000"   
+      - "9001:9001"   
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     volumes:
-      - minio-data:/data   # <-- persistance : les donnees survivent aux redemarrages
+      - minio-data:/data   
     healthcheck:
       # l'API ne demarre qu'une fois MinIO reellement pret (pas juste "lance")
       test: ["CMD", "mc", "ready", "local"]
@@ -38,10 +31,6 @@ services:
     networks:
       - oncolake-net
 
-  # ---------------------------------------------------------------------------
-  # minio-setup : conteneur ephemere qui cree les buckets puis s'arrete.
-  # Evite d'avoir a creer les buckets a la main a chaque "compose up".
-  # ---------------------------------------------------------------------------
   minio-setup:
     image: minio/mc:latest
     container_name: oncolake-minio-setup
@@ -81,9 +70,6 @@ services:
     networks:
       - oncolake-net
 
-# -----------------------------------------------------------------------------
-# Volume nomme : c'est lui qui assure la persistance des donnees MinIO.
-# -----------------------------------------------------------------------------
 volumes:
   minio-data:
 

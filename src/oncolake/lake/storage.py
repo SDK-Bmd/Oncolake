@@ -22,8 +22,6 @@ from oncolake.config.settings import settings
 class StorageError(Exception):
     """Erreur de stockage cote OncoLake (connexion, objet absent, etc.)."""
 
-
-# Client mis en cache au niveau module : inutile de le reconstruire a chaque appel.
 _client = None
 
 
@@ -37,14 +35,11 @@ def get_s3_client():
             aws_access_key_id=settings.s3_access_key,
             aws_secret_access_key=settings.s3_secret_key,
             config=Config(signature_version="s3v4"),
-            region_name="us-east-1",  # valeur factice mais requise par boto3
+            region_name="us-east-1",  
         )
     return _client
 
 
-# ---------------------------------------------------------------------------
-# Helpers de robustesse
-# ---------------------------------------------------------------------------
 def ping() -> bool:
     """Verifie que MinIO repond. Renvoie True/False, ne leve pas.
 
@@ -82,10 +77,6 @@ def ensure_buckets() -> None:
             except ClientError as exc:
                 raise StorageError(f"Impossible de creer le bucket '{bucket}'") from exc
 
-
-# ---------------------------------------------------------------------------
-# Operations sur les objets
-# ---------------------------------------------------------------------------
 def put_bytes(bucket: str, key: str, data: bytes) -> None:
     """Depose un objet binaire (ex. un .cif, un .json) dans un bucket."""
     try:
