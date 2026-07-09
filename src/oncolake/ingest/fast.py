@@ -12,10 +12,10 @@ from oncolake.features.extract import features_for_record
 def _process_item(item: dict, disorder_threshold: int = 70) -> dict | None:
     """Télécharge la structure d'un item et en extrait les features (None si absente).
     Exécuté dans un thread ; ThreadPoolExecutor.map préserve l'ordre."""
-    cif = alphafold.fetch_cif(item["accession"])
+    cif = alphafold.fetch_cif(item.accession)   
     if cif is None:
         return None
-    record = {"accession": item["accession"], "sequence": item["sequence"],
+    record = {"accession": item.accession, "sequence": item.sequence,
               "gene": None, "label": None}
     return features_for_record(record, cif, disorder_threshold)
 

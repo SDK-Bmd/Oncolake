@@ -2,7 +2,8 @@
 import gemmi
 import os
 import tempfile
-
+import polars as pl 
+import numpy as np  
 
 from oncolake.schemas import AA20
 

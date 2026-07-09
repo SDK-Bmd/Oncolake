@@ -50,7 +50,6 @@ def ingest(req: IngestRequest):
                   "gene": None, "label": None}
         features.append(features_for_record(record, cif))
     elapsed = time.perf_counter() - start
-    # TODO 4b : renvoyer un dict avec n_processed, elapsed_seconds (arrondi à 3), features
     return {"n_processed": len(features), "elapsed_seconds": round(elapsed, 3), "features": features}
 
 @app.post("/ingest_fast")
