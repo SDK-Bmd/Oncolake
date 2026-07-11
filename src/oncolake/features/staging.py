@@ -67,10 +67,16 @@ def build_features(dual_label_policy: str = "drop",
         print(f"[skip] pas de structure : {r['accession']} ({r['gene']})")
     print(f"[filter] {len(kept)} gardees, {len(dropped)} sans structure")
 
-    rows: list[dict] = []
+
+    rows, failed = [], []
     for r in kept:
-        cif = storage.get_bytes(settings.bucket_raw, r["cif_key"])
-        rows.append(features_for_record(r, cif, disorder_threshold))
+        try:
+            cif = storage.get_bytes(settings.bucket_raw, r["cif_key"])
+            rows.append(features_for_record(r, cif, disorder_threshold))
+        except Exception as exc:
+            print(f"[skip] {r['accession']} ({r['gene']}) : extraction impossible -> {exc}")
+            failed.append(r["accession"])
+    print(f"[staging] {len(rows)} lignes, {len(failed)} ecartees pour erreur")
 
     df = pl.DataFrame(rows)
     buf = io.BytesIO()

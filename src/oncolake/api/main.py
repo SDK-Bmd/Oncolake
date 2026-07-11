@@ -6,6 +6,7 @@ from oncolake.ingest import alphafold
 from oncolake.features.extract import features_for_record
 from oncolake.schemas import IngestRequest
 from oncolake.ingest.fast import ingest_fast
+from fastapi import HTTPException
 
 app = FastAPI(title="OncoLake API")
 
@@ -16,10 +17,10 @@ def health():
 
 @app.get("/stats")
 def stats():
-    buckets = {}
-    for b in settings.buckets:             
-        buckets[b] = storage.count_objects(b)
-    return buckets
+    try:
+        return {b: storage.count_objects(b) for b in settings.buckets}
+    except storage.StorageError as exc:
+        raise HTTPException(status_code=503, detail=f"Stockage indisponible : {exc}")
 
 def _list_zone(bucket: str):
     return {"zone": bucket, "objets": storage.list_keys(bucket)}

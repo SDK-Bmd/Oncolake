@@ -33,6 +33,10 @@ def structure_features(cif_bytes: bytes, disorder_threshold: int = 70) -> dict:
                 coords.append([ca.pos.x, ca.pos.y, ca.pos.z])
 
     plddt_arr = np.asarray(plddt)
+
+    if not plddt:
+        raise ValueError("aucun atome CA dans la structure")
+
     coords_arr = np.asarray(coords)
     center = coords_arr.mean(axis=0)
     rg = float(np.sqrt(((coords_arr - center) ** 2).sum(axis=1).mean()))

@@ -26,5 +26,5 @@ def fetch_cif(accession: str) -> bytes | None:
         cif = _session.get(entries[0]["cifUrl"], timeout=60)
         cif.raise_for_status()
         return cif.content
-    except requests.HTTPError:
+    except (requests.RequestException, ValueError, requests.HTTPError, ConnectionError, requests.Timeout, requests.JSONinvalide):
         return None

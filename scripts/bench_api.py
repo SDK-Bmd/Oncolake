@@ -1,6 +1,6 @@
 import json, requests
 
-manifest = json.load(open("data/raw/manifest.json"))
+manifest = json.load(open("../data/raw/manifest.json"))
 items = [{"accession": m["accession"], "sequence": m["sequence"]}
          for m in manifest if m["has_structure"]]
 
