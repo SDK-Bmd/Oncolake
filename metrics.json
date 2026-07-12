@@ -1,7 +1,66 @@
 {
-  "test_accuracy": 0.495,
-  "cv_accuracy": 0.5197,
+  "test_accuracy": 0.4554,
+  "cv_accuracy": 0.5321,
+  "cv_std": 0.0712,
   "baseline_accuracy": 0.5569,
+  "logreg_cv_accuracy": 0.5172,
+  "beats_baseline": false,
   "n_samples": 404,
-  "n_features": 25
+  "n_features": 25,
+  "confusion_matrix": [
+    [
+      35,
+      21
+    ],
+    [
+      34,
+      11
+    ]
+  ],
+  "classes": [
+    "oncogene",
+    "tumor_suppressor"
+  ],
+  "top_features": [
+    {
+      "feature": "aa_S",
+      "importance": 0.0626
+    },
+    {
+      "feature": "aa_V",
+      "importance": 0.0572
+    },
+    {
+      "feature": "aa_A",
+      "importance": 0.0548
+    },
+    {
+      "feature": "aa_W",
+      "importance": 0.0529
+    },
+    {
+      "feature": "aa_Y",
+      "importance": 0.0523
+    },
+    {
+      "feature": "aa_E",
+      "importance": 0.0514
+    },
+    {
+      "feature": "aa_L",
+      "importance": 0.0467
+    },
+    {
+      "feature": "aa_R",
+      "importance": 0.0453
+    },
+    {
+      "feature": "aa_H",
+      "importance": 0.0408
+    },
+    {
+      "feature": "pct_low_confidence",
+      "importance": 0.039
+    }
+  ]
 }
