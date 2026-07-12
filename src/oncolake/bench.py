@@ -1,8 +1,5 @@
 """Benchmark des endpoints /ingest vs /ingest_fast aux tailles de batch 1 et 100.
 
-Consigne 3.1 : chronometrer le pipeline pour un batch de 1 et un batch de 100
-elements, sur les deux endpoints, et documenter la comparaison a ces tailles.
-
 Prerequis : MinIO up (lecture du manifeste) + acces reseau (les endpoints
 telechargent depuis AlphaFold). Genere logs/endpoint_benchmark.md.
 

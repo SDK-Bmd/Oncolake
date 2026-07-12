@@ -4,11 +4,6 @@
 from oncolake.lake.warehouse import get_duckdb
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-import numpy as np
-from sklearn.metrics import confusion_matrix, classification_report
-from sklearn.model_selection import cross_val_score
-import numpy as np
-from sklearn.dummy import DummyClassifier
 
 import json
 from pathlib import Path

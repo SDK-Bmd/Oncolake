@@ -19,8 +19,6 @@ _FORCED_LABEL = {"oncogene": "oncogene", "suppressor": "tumor_suppressor", "both
 def resolve_dual_labels(records: list[dict], policy: str) -> list[dict]:
     """Traite les proteines portant les DEUX labels (meme accession, 2 entrees).
 
-    Ces doublons violent l'unicite de l'accession (contrainte de la zone Staging,
-    TP3). Politiques :
       drop       -> on les ecarte (labels contradictoires pour une tache binaire)
       oncogene   -> on force le label 'oncogene'
       suppressor -> on force le label 'tumor_suppressor'

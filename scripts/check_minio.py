@@ -1,6 +1,6 @@
 """Verification de la connexion a MinIO et du bon fonctionnement du stockage.
 
-A lancer chez toi, MinIO devant tourner (docker compose up -d minio minio-setup) :
+A lancer après le lancement de MinIO (docker compose up -d minio minio-setup) :
 
     python scripts/check_minio.py
 
@@ -9,8 +9,6 @@ Le script :
   2. s'assure que les 3 buckets existent,
   3. fait un aller-retour ecriture / lecture / suppression sur un objet test,
   4. affiche les stats par zone.
-
-Aucun effet de bord persistant : l'objet test est supprime a la fin.
 """
 
 import sys
