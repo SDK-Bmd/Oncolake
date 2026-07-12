@@ -6,13 +6,8 @@ Fait passer les donnees de la zone raw (brut) a la zone staging (nettoye + struc
     python scripts/build_features.py --dual-label oncogene # autres : suppressor, both
 """
 import argparse
-import sys 
-from oncolake.config.settings import settings
-from oncolake.features.extract import features_for_record
+import sys
 from oncolake.features.staging import build_features
-from oncolake.lake import storage
-
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Etape 4 : features -> staging.")
