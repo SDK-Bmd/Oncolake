@@ -9,9 +9,9 @@ stages:
       size: 453
     - path: src/oncolake/ingest
       hash: md5
-      md5: be7bb7c69727d80d0bb2190ba24884a2.dir
-      size: 13648
-      nfiles: 9
+      md5: 22a5ed5fd4b0d0d6122db5a9fa69382f.dir
+      size: 14914
+      nfiles: 10
     params:
       params.yaml:
         ingest:
@@ -39,12 +39,12 @@ stages:
       size: 561
     - path: src/oncolake/features/extract.py
       hash: md5
-      md5: eb405cffbab5dc25a6cdc8045ead8b45
-      size: 2222
+      md5: e7816fe55b7b0ea3e8f4b7e82f615936
+      size: 2307
     - path: src/oncolake/features/staging.py
       hash: md5
-      md5: ce359c5a5dcfc96f875c0707e11b0819
-      size: 2873
+      md5: bf697ea7c5f99dda4fcc3ad3486598da
+      size: 3041
     params:
       params.yaml:
         features:
@@ -88,8 +88,8 @@ stages:
       size: 291
     - path: src/oncolake/ml/train.py
       hash: md5
-      md5: 0103b7d5c9eb8495233a6f52d6fa30f3
-      size: 2404
+      md5: a04077fa363820c0c7053eefbb0cc9c3
+      size: 2199
     params:
       params.yaml:
         train:
@@ -99,8 +99,8 @@ stages:
     outs:
     - path: data/model.joblib
       hash: md5
-      md5: 988eaf9d1111fb46da537484dc66fde8
-      size: 2521305
+      md5: 1cd4b2db6b9d25723d2ab19dad3eeeb7
+      size: 2521321
     - path: metrics.json
       hash: md5
       md5: 2951b1b49ed652c841aa42d3934c06d4

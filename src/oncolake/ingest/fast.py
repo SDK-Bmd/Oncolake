@@ -1,8 +1,4 @@
-"""Version optimisée de /ingest : téléchargements + extraction en parallèle (ThreadPool).
-
-Même sortie que le ingest naïf, mais les .cif sont récupérés en parallèle. L'étape
-est I/O-bound, donc le parallélisme est le levier le plus rentable.
-"""
+"""Version optimisée d' /ingest : téléchargements + extraction en parallèle."""
 from concurrent.futures import ThreadPoolExecutor
 
 from oncolake.ingest import alphafold
